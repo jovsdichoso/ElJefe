@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
-import { motion } from 'framer-motion'; // 1. Import Framer Motion
+import { NavLink, Link, useLocation } from 'react-router-dom'; // Added useLocation
+import { motion, AnimatePresence } from 'framer-motion'; // Added AnimatePresence
 import logoImg from '../assets/logo.png';
 
 const Header = () => {
     const [isDark, setIsDark] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for Hamburger
+    const location = useLocation(); // To close menu on route change
 
+    // 1. Theme Logic
     useEffect(() => {
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (systemPrefersDark) {
@@ -17,6 +20,11 @@ const Header = () => {
         }
     }, []);
 
+    // 2. Close mobile menu whenever the route changes
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location]);
+
     const toggleTheme = () => {
         if (isDark) {
             document.documentElement.classList.remove('dark');
@@ -27,25 +35,32 @@ const Header = () => {
         }
     };
 
+    // Styling helpers
     const navLinkClass = ({ isActive }) =>
         isActive
             ? "text-sm font-bold text-orange-600 dark:text-orange-500 transition relative"
             : "text-sm font-bold text-gray-600 hover:text-black dark:text-gray-300 dark:hover:text-white transition";
 
+    // Mobile Link Style (Bigger text for touch)
+    const mobileLinkClass = ({ isActive }) =>
+        isActive
+            ? "text-2xl font-black text-orange-600 dark:text-orange-500 tracking-tighter"
+            : "text-2xl font-black text-gray-800 dark:text-white tracking-tighter hover:text-orange-500 dark:hover:text-orange-500 transition";
+
+
     return (
-        // 2. Change <nav> to <motion.nav>
         <motion.nav
-            initial={{ y: -100, opacity: 0 }} // Start: Hidden above the screen
-            animate={{ y: 0, opacity: 1 }}    // End: Slides down to normal position
-            transition={{ duration: 0.8, ease: "easeOut" }} // Smoothness
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="fixed top-0 w-full z-50 transition-colors duration-300 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10"
         >
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
 
-                {/* LOGO SECTION */}
-                <Link to="/" className="flex items-center gap-2 group">
+                {/* --- LOGO --- */}
+                <Link to="/" className="flex items-center gap-2 group z-50">
                     <motion.img
-                        whileHover={{ scale: 1.1, rotate: -5 }} // Fun hover effect
+                        whileHover={{ scale: 1.1, rotate: -5 }}
                         whileTap={{ scale: 0.9 }}
                         src={logoImg}
                         alt="El Jefe Logo"
@@ -53,30 +68,72 @@ const Header = () => {
                     />
                 </Link>
 
-                {/* NAVIGATION LINKS */}
+                {/* --- DESKTOP MENU (Hidden on Mobile) --- */}
                 <div className="hidden md:flex items-center gap-8">
-                    {['/', '/shop', '/about'].map((path, index) => (
+                    {['/', '/shop', '/about'].map((path) => (
                         <NavLink key={path} to={path} className={navLinkClass}>
                             {path === '/' ? 'HOME' : path.replace('/', '').toUpperCase()}
                         </NavLink>
                     ))}
                 </div>
 
-                {/* THEME TOGGLE */}
-                <motion.button
-                    whileHover={{ scale: 1.1, rotate: 180 }} // Spins when hovered!
-                    whileTap={{ scale: 0.9 }}
-                    onClick={toggleTheme}
-                    className="p-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-gray-200 shadow-sm"
-                >
-                    {isDark ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                    ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                    )}
-                </motion.button>
+                {/* --- RIGHT SIDE ACTIONS --- */}
+                <div className="flex items-center gap-4">
 
+                    {/* THEME TOGGLE */}
+                    <motion.button
+                        whileHover={{ scale: 1.1, rotate: 180 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={toggleTheme}
+                        className="p-2 rounded-full bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-gray-200 shadow-sm z-50"
+                    >
+                        {isDark ? (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        ) : (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                        )}
+                    </motion.button>
+
+                    {/* --- HAMBURGER BUTTON (Visible only on Mobile) --- */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="md:hidden p-2 text-gray-800 dark:text-white z-50"
+                    >
+                        {isMobileMenuOpen ? (
+                            // X Icon (Close)
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        ) : (
+                            // Hamburger Icon (Open)
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        )}
+                    </button>
+                </div>
             </div>
+
+            {/* --- MOBILE MENU OVERLAY --- */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "100vh" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="fixed inset-0 top-20 z-40 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl md:hidden flex flex-col items-center justify-center gap-8"
+                    >
+                        {['/', '/shop', '/about'].map((path) => (
+                            <NavLink
+                                key={path}
+                                to={path}
+                                className={mobileLinkClass}
+                                onClick={() => setIsMobileMenuOpen(false)} // Close when clicked
+                            >
+                                {path === '/' ? 'HOME' : path.replace('/', '').toUpperCase()}
+                            </NavLink>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </motion.nav>
     );
 };
